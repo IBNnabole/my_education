@@ -1,0 +1,10 @@
+def common_letters(string_one, string_two):
+  nums = []
+  for i in string_one:
+    for a in string_two:
+      if i == a:
+        nums.append(i)
+  nums = list(dict.fromkeys(nums))
+  return nums
+  
+  # this function takes two arguments, string_one and string_two and then returns a list with all of the letters they have in common, but without any duplicates
