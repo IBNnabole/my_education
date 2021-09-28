@@ -1,0 +1,23 @@
+# This function create a username. It use first and last names.
+def username_generator(first_name, last_name):
+  username = ""
+  if len(first_name) <= 3: 
+    username = first_name + last_name[:4]
+    return username
+  elif len(last_name) <= 4:
+    username = first_name[:3] + last_name
+    return username
+  elif len(first_name) <= 3 and len(last_name) <= 4:
+    username = first_name + last_name
+    return username
+  else:
+    username = first_name[:3] + last_name[:4]
+    return username
+  return username
+
+# This function create a password. It have to use the user name from previous function.
+def password_generator(username): 
+  password = ""
+  len_user = len(username)
+  password = username[len_user - 1] + username[:-1]
+  return password
