@@ -38,3 +38,4 @@ for player in player_to_words.keys():
 print("The winner: " + name + " with " + str(winner) + " points!")
 print(player_to_points)
 #print(letter_to_points)
+#Its only an algorithm
