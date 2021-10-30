@@ -210,6 +210,57 @@ def single_prix_fixe_order(appetizer, *entrees, sides, **dessert_scoops):
 
 single_prix_fixe_order('Baby Beets', 'Salmon', 'Scallops', sides = 'Mashed Potatoes', iceream_scoop_1 = 'Vanilla', iceream_scoop_2 = 'Cookies and Cream')
 
+///////// Распаковка вызовов функций:
+
+numbers  = {'num1': 3, 'num2': 6, 'num3': 9}
+def sum(num1, num2, num3):
+  print(num1 + num2 + num3) // 18
+ 
+sum(**numbers)
+
+
+start_and_stop = [3, 6]
+range_values = range(*start_and_stop)
+print(list(range_values)) // [3, 4, 5]
+
+
+ a, *b, c = [3, 6, 9, 12, 15]
+ print(b) // [6, 9, 12]
+
+
+my_tuple = (3, 6, 9)
+merged_tuple = (0, *my_tuple, 12)
+print(merged_tuple) // (0, 3, 6, 9, 12)
+
+
+num_collection = [3, 6, 9]
+def power_two(*nums): 
+  for num in nums:
+    print(num**2) // 9 36 81
+ 
+power_two(*num_collection)
+
+
+def calculate_price_per_person(total, tip, split):
+  total_tip = total * (tip/100)
+  split_price = (total + total_tip) / split
+  print(split_price)
+
+table_7_total = [534.50, 20.0, 5]
+
+calculate_price_per_person(*table_7_total)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
