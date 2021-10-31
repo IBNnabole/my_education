@@ -250,6 +250,327 @@ table_7_total = [534.50, 20.0, 5]
 
 calculate_price_per_person(*table_7_total)
 
+///////////// Введение в имена и пространства имен:
+
+// Встроенное пространство имен
+
+print(dir(__builtins__))
+
+// Глобальное пространство имен
+
+print(globals())
+
+// Локальное пространство имен 
+
+print(locals())
+
+// Включение пространства имен
+
+global_variable = 'global'
+ 
+def outer_function():
+  outer_value = "outer"
+ 
+  def inner_function():
+    inner_value = "inner"
+
+    def inner_nested_function():
+      nested_value = 'nested'
+    inner_nested_function()
+    print(locals())
+  inner_function()
+ 
+outer_function()
+
+// Локальный охват
+
+def painting(paint_colors, picture):
+  painting_statement = "To paint the " + picture + " we need the following colors: "
+  print(painting_statement)
+  for color in paint_colors:
+      print(color)
+
+painting(['Orange', 'White', 'Green'], 'Indian Flag')
+
+// Охватывающая / нелокальная область видимости
+
+def calc_paint_amount(width, height):
+  square_feet = width * height
+  def calc_gallons():
+      return square_feet / 400
+
+  return calc_gallons()
+
+
+print('Number of paint gallons needed: ')
+print(str(calc_paint_amount(30,20)))
+
+// Изменение поведения области действия
+
+walls = [(20, 9), (25, 9), (20, 9), (25, 9)]
+
+
+def calc_paint_amount(wall_measurements):
+
+  square_feet = 0
+
+  def calc_square_feet():
+    
+    for width, height in wall_measurements:
+      nonlocal square_feet <----------------------------
+      square_feet += width * height
+
+  def calc_gallons():
+    return square_feet / 400
+
+  calc_square_feet()
+
+  return calc_gallons()
+
+
+print('Number of paint gallons needed: ')
+print(str(calc_paint_amount(walls)))
+
+// Глобальный масштаб
+
+paint_gallons_available = {
+    'red': 50,
+    'blue': 72,
+    'green': 99,
+    'yellow': 33
+}
+def print_available(color):
+
+  print('There are ' + str(paint_gallons_available[color]) + ' gallons available of ' + color + ' paint.')
+
+
+def print_all_colors_available():
+  for color in paint_gallons_available:
+    print(color)
+
+print_available('red')
+print_all_colors_available()
+
+// Изменение поведения области действия
+
+global_var = 10
+def some_function():
+  global_var = 20
+some_function()
+ 
+print(global_var) // 10
+
+global_var = 10
+def some_function():
+  global global_var
+  global_var = 20
+some_function()
+ 
+print(global_var) // 20
+
+
+def print_available(color):
+  global paint_gallons_available
+  paint_gallons_available = {
+    'red': 50,
+    'blue': 72,
+    'green': 99,
+    'yellow': 33
+  }
+  print('There are ' + str(paint_gallons_available[color]) + ' gallons available of ' + color + ' paint.')
+
+
+print_available('red')
+for color in paint_gallons_available:
+  print(color)
+
+// Разрешение области действия: правило LEGB
+
+color = 'green'
+
+def change_color(new_color):
+  global color
+  # Checkpoint #2
+  to_update = new_color
+  
+  def disp_color():
+    print('The original color was: ' + color)
+
+  disp_color()
+  # Checkpoint #3
+  color = to_update
+  print('The new color is: ' + color)
+
+change_color('blue')
+
+// 
+
+def add_two(my_input):
+  return my_input + 2
+
+OR WE CAN USE THIS: 
+
+add_two = lambda my_input: my_input + 2
+
+print(add_two(3))
+print(add_two(100))
+print(add_two(-2)) // output 5, 102, 0
+
+
+check_if_A_grade = lambda grade: 'Got an A!' if grade >= 90 else 'Did not get an A.'
+
+// Введение в функции высшего порядка:
+
+# Here, we assign a function to a variable
+uppercase = str.upper 
+ 
+# And then call it 
+big_pie = uppercase("pumpkinpie")
+
+
+// Функции как аргументы:
+
+def total_bill(func, value):
+  total = func(value)
+  return total
+
+def add_tax(total):
+  tax = total * 0.06
+  new_total = total + tax
+  return new_total
+ 
+total_bill(add_tax, 100) // output 106.0
+
+
+def total_bill(func, value):
+  total = func(value)
+  return ("The total amount owed is $" + "{:.2f}".format(total) + ". Thank you! :)")
+ 
+ 
+print(total_bill(add_tax, 100)) // 'The total amount owed is $106.00. Thank you! :)'
+
+// Функции как аргументы - итерация:
+
+bills = [115, 120, 42]
+ 
+new_bills = []
+ 
+for i in range(len(bills)):
+  total = add_tax(bills[i])
+  new_bills.append("Total amount owed is $" + "{:.2f}".format(total) + ". Thank you! :)")
+ 
+print(new_bills) // output ['Total amount owed is $121.90. Thank you! :)', 'Total amount owed is $127.20. Thank you! :)', 'Total amount owed is $44.52. Thank you! :)']
+
+
+def total_bills(func, list):
+  # This list will store all the new bill values
+  new_bills = []
+ 
+  # This loop will iterate through our bills
+  for i in range(len(list)):
+ 
+    # Here we apply the function to each element of the list!
+    total = func(list[i])
+    new_bills.append("Total amount owed is $" + "{:.2f}".format(total) + ". Thank you! :)")
+ 
+  return new_bills
+
+bills = [115, 120, 42]
+ 
+bills_w_tax = total_bills(add_tax, bills)
+ 
+print(bills_w_tax) ['Total amount owed is $121.90. Thank you! :)', 'Total amount owed is $127.20. Thank you! :)', 'Total amount owed is $44.52. Thank you! :)']
+
+// Функции как возвращаемые значения:
+
+def make_box_volume_function(height):
+    # defines and returns a function that takes two numeric arguments,        
+    # length &  width, and returns the volume given the input height
+    def volume(length, width):
+        return length*width*height
+ 
+    return volume
+ 
+box_volume_height15 = make_box_volume_function(15)
+ 
+print(box_volume_height15(3,2)) // 90
+
+// map():
+
+Функция map()высшего порядка имеет следующую базовую структуру:
+returned_map_object = map(function, iterable)
+
+def double(x):
+ return x*2
+ 
+int_list = [3, 6, 9]
+ 
+doubled = map(double, int_list)
+ 
+print(doubled) // <map at 0x7f1ca0f58090>
+OR WE CAN USE THIS TO HAVE NORMAL OUTPUT: print(list(doubled)) // [6, 12, 18]
+
+also we can create that function:
+
+doubled = map(lambda input: input*2, int_list)
+print(list(doubled)) // [6, 12, 18]
+
+grade_list = [3.5, 3.7, 2.6, 95, 87]
+
+grades_100scale = map(lambda grade: grade* 25 if grade < 25 else grade, grade_list)
+
+updated_grade_list = list(grades_100scale)
+print(updated_grade_list)
+
+// filter():
+
+функция принимает в качестве аргументов функцию и итерацию. Как следует из названия, цель filter() функции - «отфильтровать» значения из итерируемого объекта.
+
+names = ["margarita", "Linda", "Masako", "Maki", "Angela"]
+M_names = filter(lambda name: name[0] == "M" or name[0] == "m", names) 
+
+print(list(M_names)) // ['margarita', 'Masako', 'Maki']
+/
+books = [["Burgess", 1985],
+ ["Orwell", "Nineteen Eighty-four"],
+  ["Murakami", "1Q85"],
+   ["Orwell", 1984],
+    ["Burgess", "Nineteen Eighty-five"],
+     ["Murakami", 1985]]
+
+string_titles = filter(lambda book: type(book[1]) != int, books)
+string_titles_list = list(string_titles)
+print(string_titles_list)
+
+// reduce():
+
+В отличие от map() и filter() функций, которые всегда доступны, то reduce() функция должна быть импортированы из functools модуля , чтобы использовать его.
+Вместо того, чтобы возвращать reduce объект, как можно было бы ожидать после изучения map() и filter(), reduce() возвращает единственное значение. 
+
+from functools import reduce
+int_list = [3, 6, 9, 12]
+reduced_int_list = reduce(lambda x,y: x*y, int_list)
+
+print(reduced_int_list) // 1944
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
