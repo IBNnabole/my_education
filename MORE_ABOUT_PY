@@ -1107,3 +1107,81 @@ box.weight = 5
 del box.weight
 
 
+// Введение в исключения
+
+Исключения - это ошибки времени выполнения, потому что они возникают во время выполнения программы, 
+только когда достигается неправильный код (код, вызывающий ошибку)
+
+// Встроенные исключения
+
+ольшинство исключений наследуются непосредственно от вызываемого класса Exception; 
+однако все они прямо или косвенно являются производными от BaseExceptionкласса. 
+Мы можем исследовать базовые классы, используя __bases__атрибут для любого конкретного исключения:
+
+print(NameError.__bases__) // <class 'Exception'>
+
+Мы можем даже назвать __bases__на Exceptionклассе , чтобы увидеть его происхождение:
+print(Exception.__bases__) // <class 'BaseException'>
+
+
+sale_instruments = ['Violin', 'Conga', 'Clavinet']
+
+print('The following ' + str(len(sale_instruments)) + ' instruments are on sale:')
+print(sale_instruments[0])
+print(sale_instruments[1])
+print(sale_instruments[2])
+print(TypeError.__bases__)
+
+// Вызов исключений:
+
+Мы можем создать исключение в любое время, используя raise ключевое слово
+
+Один из способов использования raise ключевого слова - связать его с определенным именем класса исключения. 
+Мы можем либо вызвать класс сам по себе, либо вызвать конструктор и предоставить конкретное сообщение об ошибке.
+
+raise NameError
+# or 
+raise NameError('Custom Message')
+
+/
+
+def open_register(employee_status):
+  if employee_status == 'Authorized':
+    print('Successfully opened cash register')
+  else:
+    # Alternatives: raise TypeError() or TypeError('Message')
+    raise TypeError
+
+OR
+
+def open_register(employee_status):
+  if employee_status == 'Authorized':
+    print('Successfully opened cash register')
+  else:
+    raise Exception('Employee does not have access!')
+
+/
+
+instrument_catalog = {
+  'Marimba': 1999,
+  'Kora': 499,
+  'Flute': 899
+}
+
+def print_instrument_price(instrument):
+  # Write your code below:
+  if instrument in instrument_catalog:
+    print('The price of a ' + instrument + ' is ' + str(instrument_catalog[instrument]))
+  else: raise KeyError(instrument + ' is not found in instrument catalog!')
+print_instrument_price('Marimba')
+print_instrument_price('Flute')
+print_instrument_price('Piano')
+
+
+
+
+
+
+
+
+
