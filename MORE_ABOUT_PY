@@ -2002,38 +2002,285 @@ class CustomerFeedbackTests(unittest.TestCase):
 
 unittest.main()
 
+/
+
+import unittest
+import surfshop
+
+class Tasks(unittest.TestCase):
+  
+  def setUp(self):
+    self.cart = surfshop.ShoppingCart()
+
+  def test_add_surfboard(self):
+    message = self.cart.add_surfboards(quantity=1)
+    self.assertEqual(message, 'Successfully added 1 surfboard to cart!')
+
+  def test_add_surfboards(self):
+    for i in range(2,5):
+      with self.subTest(i=i):
+        message = self.cart.add_surfboards(i)
+        self.assertEqual(message, f'Successfully added {i} surfboards to cart!')
+        self.cart = surfshop.ShoppingCart()
+  
+  @unittest.skip
+  def test_add_too_many_surfboards(self):
+    self.assertRaises(surfshop.TooManyBoardsError, self.cart.add_surfboards, 5)
+
+  @unittest.expectedFailure
+  def test_apply_locals_discount(self):
+    self.cart.apply_locals_discount()
+    self.assertTrue(self.cart.locals_discount)
+
+unittest.main()
+
+// итерируемые объекты:
+
+В Python итерируемый объект - это объект, который может проходить цикл по одному элементу за раз. 
+
+dog_foods = {
+    "Great Dane Foods": 4,
+    "Min Pin Pup Foods": 10,
+    "Pawsome Pups Foods": 8
+}
+
+for food_brand in dog_foods:
+    print(food_brand + " has " + str(dog_foods[food_brand]) + " bags")
+
+// Объекты итератора: __iter __ () и iter ():
+
+Под капотом первый шаг, который forдолжен сделать цикл, - это преобразовать наш словарь (итерируемый) dog_foods в объект-итератор .
+Объект итератора - это специальный объект, представляющий поток данных, с которыми мы можем работать. 
+Для этого он использует встроенную функцию, которая называется iter():
+
+dog_food_iterator = iter(dog_foods)
+print(dog_food_iterator)
+
+Этот __iter__()метод определен для всех итераций . Мы даже можем использовать встроенную функцию Python, dir() чтобы показать, 
+что наш dog_foodsсловарь (итеративный) имеет определенный вызываемый метод __iter__().
+При dog_foods.__iter__()вызове будет получен тот же объект итератора, что и при вызове iter(dog_foods). 
+Это означает, что встроенная функция iter()и метод итерации __iter__() могут использоваться как взаимозаменяемые. 
+
+sku_list = [7046538, 8289407, 9056375, 2308597]
+print(dir(sku_list))
+
+sku_iterator_object_one = sku_list.__iter__()
+print(sku_iterator_object_one)
+
+sku_iterator_object_two = iter(sku_list)
+print(sku_iterator_object_two)
+
+// Объекты итератора: __ next __ () и next ():
+
+у объекта итератора есть вызываемый метод __next__(), который извлекает следующее значение итератора.
+
+sku_list = [7046538, 8289407, 9056375, 2308597]
+sku_iterator = iter(sku_list)
+next_sku = sku_iterator.__next__()
+print(next_sku) // 7046538
+
+Вызов next()просто вызывает метод объекта итератора __next__(). Вот тот же сценарий, но с использованием next():
+
+sku_list = [7046538, 8289407, 9056375, 2308597]
+sku_iterator = iter(sku_list)
+next_sku = next(sku_iterator)
+print(next_sku)
 
 
+Если мы вызовем __next__()в общей сложности 5 раз, что на один больше, чем общее количество SKU в нашем списке, 
+мы увидим возникновение StopIterationисключения при последнем __next__() вызове:
+
+sku_list = [7046538, 8289407, 9056375, 2308597]
+sku_iterator = iter(sku_list)
+for i in range(5):
+  next_sku = sku_iterator.__next__()
+  print(next_sku)
+
+/
+
+dog_foods = {
+  "Great Dane Foods": 4,
+  "Min Pip Pup Foods": 10,
+  "Pawsome Pup Foods": 8
+}
+
+dog_food_iterator = iter(dog_foods)
+next_dog_food1 = next(dog_food_iterator)
+print(next_dog_food1)
+next_dog_food2 = dog_food_iterator.__next__()
+print(next_dog_food2)
+next_dog_food3 = dog_food_iterator.__next__()
+print(next_dog_food3)
 
 
+// Итераторы и циклы For:
+
+Подводя итог, можно выделить три основных шага:
+
+1) for Цикл будет первым извлечение объекта итератора для dog_foods словаря с использованием iter().
+
+2) Затем next() вызывается на каждой итерации for цикла для получения следующего значения. Это значение устанавливается в for переменную цикла food_brand.
+
+3) На каждой for итерации for цикла выполняется инструкция печати, пока, наконец, цикл не выполнит вызов next(), вызывающий StopIteration исключение. 
+Затем for цикл завершается и итерация завершается.
+
+// Пользовательские итераторы I:
+
+Если мы хотим , чтобы создать свой собственный пользовательский класс итератора, мы должны реализовать протокол итератора, означает ,
+что мы должны иметь класс , который определяет на минимуме __iter__() и __next__() методы.
+
+class FishInventory:
+  def __init__(self, fishList):
+      self.available_fish = fishList
+
+Мы не можем просто включать наши пользовательские классы в forциклы и ожидать каких-либо результатов!
+Для того, чтобы сделать FishInventory класс Iterable, можно просто определить __iter__() и __next__() методы.
+
+1) __iter__() Метод всегда должен возвращать сам объект итератора. Обычно это достигается возвратом self. 
+Он также может включать инициализацию некоторых членов класса.
+
+2) __next__() Метод должен либо вернуть следующее значение доступным или поднять StopIteration исключение. 
+Он также может включать в себя любое количество операций.
+
+Мы можем инициализировать член класса в __iter__() вызываемом методе index, который поможет нам отслеживать текущую позицию в self.available_fish списке.
+Затем мы определяем __next__() метод. Напомним, что мы можем выполнять операции внутри этого метода, такие как, увеличение членов класса или обход for цикла.
+
+class FishInventory:
+  def __init__(self, fishList):
+      self.available_fish = fishList
+ 
+  def __iter__(self):
+    self.index = 0
+    return self
+ 
+  def __next__(self):
+    if self.index < len(self.available_fish):
+      fish_status = self.available_fish[self.index] + " is available!"
+      self.index += 1
+      return fish_status
+    else:
+      raise StopIteration
+
+/
+
+class CustomerCounter:
+
+  def __iter__(self):
+    self.count = 0
+    return self
+
+  def __next__(self):
+    if self.count > 100:
+      raise StopIteration
+    else:
+      self.count += 1
+      return self.count
+
+customer_counter = CustomerCounter()
+
+for i in customer_counter:
+  print(i)
+
+// Itertools Python: встроенные итераторы:
+
+Python предлагает удобный встроенный модуль с именем itertools, который предоставляет возможность создавать сложные манипуляции с итератором.
+
+Есть три категории итераторов itertool:
+
+1) Бесконечный: бесконечные итераторы будут повторяться бесконечное количество раз. Они не будут вызывать исключение StopIteration,
+и для выхода из них потребуется какое-то условие остановки.
+2) Конечный: конечные итераторы заканчиваются длиной входной итерируемой-(ых) последовательности-(ей). 
+Это означает, что итератор наименьшей длины, используемый в конечном итераторе, завершит итератор.
+3) Комбинаторные: комбинаторные итераторы - это итераторы, которые являются комбинационными, в которых математические функции выполняются на входных итерациях.
+
+Мы можем использовать модуль itertools, просто поставив оператор импорта в верхней части модуля следующим образом:
+import itertools
+
+// Бесконечный итератор: счет:
+
+Полезным инструментом itertool, который представляет собой бесконечный итератор, является count() itertool. 
+Этот бесконечный итератор будет отсчитывать от первого значения до тех пор, пока мы не предоставим какой-либо тип условия остановки.
+
+count(start,[step])
 
 
+import itertools
+ 
+for i in itertools.count(start=0, step=2):
+  print(i)
+  if i >= 20:
+    break
 
+/
 
+import itertools
 
+max_capacity = 1000
+num_bags = 0
 
+for i in itertools.count(start = 13.5, step = 13.5): 
+  if i >= max_capacity:
+    break
+  num_bags += 1
 
+print(num_bags)
 
+// Конечный итератор: цепочка:
 
+Полезным инструментом itertool, который является конечным итератором, является chain() itertool. 
+Этот конечный итератор примет одну или несколько итераций и объединит их в один итератор. 
 
+chain(*iterables) <---------------
 
+Входное значение chain() - это одна или несколько итераций одного и того же или различных итерационных типов. 
+Например, мы могли бы использовать chain() itertool для объединения списка и набора в один итератор.
 
+import itertools
+ 
+odd = [5, 7, 9]
+even = {6, 8, 10}
+ 
+all_numbers = itertools.chain(odd, even)
+ 
+for number in all_numbers:
+  print(number)
 
+/
 
+import itertools
 
+great_dane_foods = [2439176, 3174521, 3560031]
+min_pin_pup_foods = [6821904, 3302083]
+pawsome_pup_foods = [9664865]
 
+all_skus_iterator = itertools.chain(great_dane_foods, min_pin_pup_foods, pawsome_pup_foods)
 
+for i in all_skus_iterator:
+  print(i)
 
+// Комбинаторный итератор: комбинации:
 
+Полезным инструментом itertool, который является комбинаторным итератором, является combinations() itertool. 
 
+combinations(iterable, r)
 
+Инструмент combinations() itertool принимает два входа, первый - итерируемый, а второй - значение r, представляющее длину каждого комбинированного кортежа.
+Тип возврата combinations() - это итератор, который можно использовать в forцикле или преобразовать в итеративный тип с помощью list() или set().
 
+import itertools
+even = [2, 4, 6]
+even_combinations = list(itertools.combinations(even, 2))
+print(even_combinations)
 
+/
 
+import itertools
 
+collars = ["Red-S","Red-M", "Blue-XS", "Green-L", "Green-XL", "Yellow-M"]
 
-
-
+collar_combo_iterator = itertools.combinations(collars, 3)
+for i in collar_combo_iterator:
+  print(i)
 
 
 
