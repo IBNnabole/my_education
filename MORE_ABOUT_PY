@@ -2483,6 +2483,421 @@ print(next(my_generator)) # Output: 1
 print(my_generator.send(3)) # Output: 4
 print(next(my_generator)) # Output: 5
 
+/
+
+MAX_STUDENTS = 50
+
+def get_student_ids():
+  student_id = 1
+  while student_id <= MAX_STUDENTS:
+    n = yield student_id
+    if n is not None:
+      student_id = n
+      continue
+
+    student_id += 1
+
+student_id_generator = get_student_ids()
+for i in student_id_generator:
+  if i == 1:
+    i = student_id_generator.send(25)
+
+  print(i)
+  
+// Методы генератора: throw ():
+
+Метод генератора throw()предоставляет возможность генерировать исключение внутри генератора из вызывающей точки. 
+Это может быть полезно, если нам нужно завершить работу генератора, когда он достигнет определенного значения или соответствует определенному условию.
+
+def generator():
+  i = 0
+  while True:
+    yield i
+    i += 1
+ 
+my_generator = generator()
+for item in my_generator:
+    if item == 3:
+        my_generator.throw(ValueError, "Bad value given")
+
+/
+
+def student_counter():
+  for i in range(1,5001):
+    yield i
+
+student_generator = student_counter()
+for student_id in student_generator:
+  if student_id > 100:
+    student_generator.throw(ValueError, "Invalid student ID")
+  print(student_id) // Всего 5000 студ. мы берем ток первые 100, если id > 100, then error
+
+// Методы генератора: close ():
+
+Метод генератора .close() используется для преждевременного отключения генератора. После вызова .close() метода генератор завершает свою работу, 
+как и конец файла for loop. Любые дальнейшие попытки повторения вызовут StopIteration исключение.
+
+def generator():
+  i = 0
+  while True:
+    yield i
+    i += 1
+ 
+my_generator = generator()
+next(my_generator)
+next(my_generator)
+my_generator.close()
+next(my_generator) # raises StopGenerator exception
+
+
+.close() Метод работает, поднимая GeneratorExit исключение внутри функции генератора. Исключение обычно игнорируется, 
+но может быть обработано с помощью try и except.
+
+
+def generator():
+  i = 0
+  while True:
+    try:
+      yield i
+    except GeneratorExit:
+      print("Early exit, BYE!")
+      break
+    i += 1
+ 
+my_generator = generator()
+for item in my_generator:
+  print(item)
+  if item == 1:
+    my_generator.close()
+
+/
+
+def student_counter():
+  for i in range(1,5001):
+    yield i
+
+student_generator = student_counter()
+for student_id in student_generator:
+  print(student_id) // Всего 5000 студ. мы берем ток первые 100, если id > 100,
+  if student_id > 99:
+    student_generator.close()
+
+// Подключение генераторов: 
+
+В некоторых случаях полезно соединить несколько генераторов в один. Это позволяет нам делегировать операции одного генератора другому подгенератору. 
+Подключение генераторов аналогично использованию chain() функции itertools для объединения итераторов в один итератор.
+Для подключения генераторов мы используем yield from инструкцию.
+
+def cs_courses():
+    yield 'Computer Science'
+    yield 'Artificial Intelligence'
+ 
+def art_courses():
+    yield 'Intro to Art'
+    yield 'Selecting Mediums'
+ 
+ 
+def all_courses():
+    yield from cs_courses()
+    yield from art_courses()
+ 
+combined_generator = all_courses()
+
+/
+
+def science_students(x):
+  for i in range(1,x+1):
+    yield i
+
+def non_science_students(x,y):
+  for i in range(x,y+1):
+    yield i
+
+def combined_students():
+  yield from science_students(5) // Science students with IDs 1-5
+  yield from non_science_students(10,15) // Non-science students with IDs 10-15
+  yield from non_science_students(25,30) // Non-science students with IDs 25-30
+  
+student_generator = combined_students()
+
+for student in student_generator:
+  print(student)
+
+// Генераторные трубопроводы:
+
+Конвейеры генераторов позволяют нам использовать несколько генераторов для выполнения серии операций в одном выражении. 
+Мы можем разбить сложные операции на более мелкие, более управляемые части, которые затем можно объединить в конвейер для достижения желаемого результата.
+Для конвейерных генераторов выход одной функции генератора может быть входом другой функции генератора. 
+Этот результирующий генератор затем можно использовать в качестве входных данных для другой функции генератора и т.Д.
+
+
+def number_generator():
+  i = 0
+  while True:
+    yield i
+    i += 1
+ 
+def even_number_generator(numbers):
+  for n in numbers:
+    if n % 2 == 0:
+      yield n
+ 
+even_numbers = even_number_generator(number_generator())
+ 
+for e in even_numbers:
+  print(e)
+  if e == 100:
+    break
+
+Когда мы перебираем even_numbers, выводятся только четные числа. В even_number_generator() перебирает все числа , 
+используя number_generator(). Когда встречается четное число, это число возвращается функцией even_number_generator().
+
+
+def course_generator():
+    yield ("Computer Science", 5)
+    yield ("Art", 10)
+    yield ("Business", 15)
+    
+def add_five_students(courses):
+  for course, num in courses:
+    yield(course, num + 5)
+
+increased_courses = add_five_students(course_generator())
+
+for i in increased_courses:
+  print(i)
+
+/
+
+def summa():
+    yield 'Summa Cum Laude'
+
+def magna():
+    yield 'Magna Cum Laude' 
+
+def cum_laude():
+    yield 'Cum Laude'
+
+def honors_generator(gpas):
+  for gpa in gpas:
+    if gpa > 3.9:
+      yield from summa()
+    elif gpa > 3.7:
+      yield from magna()
+    elif gpa > 3.5:
+      yield from cum_laude()
+
+
+def graduation_countdown(days):
+  while days > 0:
+    days_left = yield days
+    if days_left != None:
+      days = days_left
+    else:
+      days -= 1
+
+
+days = 25
+countdown_generator = (day for day in range(days, -1,-1))
+grad_days = graduation_countdown(days)
+for day in grad_days:
+  if day == 15:
+    grad_days.send(10)
+  elif day == 3:
+    grad_days.close()
+  print("Days Left: " + str(day))
+
+
+days = 25
+gpas = [3.2, 4.0, 3.6, 2.9]
+honors = honors_generator(gpas)
+for honor_label in honors:
+  print(honor_label)
+  
+// наборы Python:
+
+В Python набор - это группа элементов, которые неупорядочены и не содержат дубликатов. Хотя может показаться, что полезность этой структуры данных ограничена, 
+на самом деле она может быть очень полезной для организации элементов и выполнения математических вычислений.
+есть также неизменная версия набора, называемая Frozenset. Frozenset ведет себя так же, как обычный набор, но не включает методов, 
+которые каким-либо образом модифицируют Frozenset.
+
+# Creating a set with curly braces
+music_genres = {'country', 'punk', 'rap', 'techno', 'pop', 'latin'}
+ 
+# Creating a set from a list using set()
+music_genres_2 = set(['country', 'punk', 'rap', 'techno', 'pop', 'latin'])
+
+# Creating a set with curly braces
+music_genres_3 = set(['country', 'punk', 'rap', 'pop', 'pop', 'pop'])
+print(music_genres_3) // {'country', 'punk', 'pop', 'rap'}
+
+# Creating an empty set using the set() constructor
+# Doing set = {} will define a dictionary rather than a set.  
+ 
+empty_genres = set()
+
+Наконец, аналогично составлению списков, мы можем создавать наборы, используя понимание множества и набор данных (например, список):
+
+items = ['country', 'punk', 'rap', 'techno', 'pop', 'latin']
+ 
+music_genres = {category for category in items if category[0] == 'p'}
+print(music_genres) // {'punk', 'pop'}
+
+/
+
+genre_results = ['rap', 'classical', 'rock', 'rock', 'country', 'rap', 'rock', 'latin', 'country', 'k-pop', 'pop', 'rap', 'rock', 'k-pop',  'rap', 'k-pop', 'rock', 'rap', 'latin', 'pop', 'pop', 'classical', 'pop', 'country', 'rock', 'classical', 'country', 'pop', 'rap', 'latin']
+
+survey_genres = set(genre_results)
+print(survey_genres)
+
+survey_abbreviated = {genre[0:3] for genre in genre_results}
+print(survey_abbreviated)
+
+// Создание Frozenset:
+
+В отличие от обычного set, вы можете создать только frozenset конструктор. 
+Помните, что использование frozenset средства означает, что вы не можете изменять элементы внутри него.
+
+# Creating a frozenset from a list
+frozen_music_genres = frozenset(['country', 'punk', 'rap', 'techno', 'pop', 'latin'])
+
+Мы также можем создать пустой frozenset:
+empty_frozen_music_genres = frozenset()
+
+top_genres = ['rap', 'rock', 'pop']
+frozen_top_genres = frozenset(top_genres)
+print(frozen_top_genres)
+
+// Добавление в набор:
+
+Есть два разных способа добавить элементы в набор:
+
+1) .add() Метод может добавить один элемент к set:
+
+# Create a set to hold the song tags
+song_tags = {'country', 'folk', 'acoustic'}
+ 
+# Add a new tag to the set and try to add a duplicate.
+song_tags.add('guitar')
+song_tags.add('country')
+ 
+print(song_tags) // {'country', 'acoustic', 'guitar', 'folk'}
+
+
+2) .update() Метод может добавить несколько элементов:
+
+# Create a set to hold the song tags
+song_tags = {'country', 'folk', 'acoustic'}
+ 
+# Add more tags using a hashable object (such as a list of elements)
+other_tags = ['live', 'blues', 'acoustic']
+song_tags.update(other_tags)
+ 
+print(song_tags) // {'acoustic', 'folk', 'country', 'live', 'blues'}
+
+/
+
+song_data = {'Retro Words': ['pop', 'warm', 'happy', 'electric']}
+
+user_tag_1 = 'warm'
+user_tag_2 = 'exciting'
+user_tag_3 = 'electric'
+
+tag_set = set(song_data['Retro Words'])
+tag_set.update([user_tag_1, user_tag_2, user_tag_3])
+
+song_data = {'Retro Words': tag_set}
+print(song_data)
+
+// Удаление из набора:
+
+Есть два метода удаления определенных элементов из set:
+
+1) В .remove() поисках метода для элемента в пределах set и удаляет его , если он существует, в противном случае KeyError выбрасываются.
+
+# Given a list of song tags
+song_tags = {'guitar', 'acoustic', 'folk', 'country', 'live', 'blues'}
+ 
+# Remove an existing element
+song_tags.remove('folk')
+print(song_tags)
+ 
+# Try removing a non-existent element
+song_tags.remove('fiddle') // this sentence give us an error
+
+2) .discard() Метод работает так же, но не бросает исключение, если элемент отсутствует:
+
+# Given a list of song tags
+song_tags = {'guitar', 'acoustic', 'folk', 'country', 'live', 'blues'}
+ 
+# Try removing a non-existent element but with the discard method
+song_tags.discard('guitar')
+print(song_tags)
+ 
+# Try removing a non-existent element but with the discard method
+song_tags.discard('fiddle')
+print(song_tags)
+
+/
+
+song_data_users = {'Retro Words': ['pop', 'onion', 'warm', 'helloworld', 'happy', 'spam', 'electric']}
+
+tag_set = set(song_data_users['Retro Words'])
+tag_set.discard('onion')
+tag_set.discard('helloworld')
+tag_set.discard('spam')
+
+song_data_users = {'Retro Words': tag_set}
+print(song_data_users)
+
+// Поиск элементов в наборе:
+
+В Python set и к frozenset элементам нельзя получить доступ по определенному индексу. Это связано с тем, что оба контейнера неупорядочены и не имеют индексов. 
+Однако, как и большинство других контейнеров Python, мы можем использовать in ключевое слово, чтобы проверить, находится ли элемент в set или frozenset.
+
+# Given a list of song tags
+song_tags = {'guitar', 'acoustic', 'folk', 'country', 'live', 'blues'}
+# Print the result of testing whether 'country' is in the set of tags or not
+print('country' in song_tags) // True
+
+song_tags = {'guitar', 'acoustic', 'folk', 'country', 'live', 'blues'}
+frozen_tags = frozenset(song_tags)
+print('rock' in frozen_tags) // False
+
+/
+
+allowed_tags = ['pop', 'hip-hop', 'rap', 'dance', 'electronic', 'latin', 'indie', 'alternative rock', 'classical', 'k-pop', 'country', 'rock', 'metal', 'jazz', 'exciting', 'sad', 'happy', 'upbeat', 'party', 'synth', 'rhythmic', 'emotional', 'relationship', 'warm', 'guitar', 'fiddle', 'romance', 'chill', 'swing']
+
+song_data_users = {'Retro Words': ['pop', 'explosion', 'hammer', 'bomb', 'warm', 'due', 'writer', 'happy', 'horrible', 'electric', 'mushroom', 'shed']}
+
+tag_set = set(song_data_users['Retro Words'])
+bad_tags = []
+for tag in tag_set:
+    if tag not in allowed_tags:
+        bad_tags.append(tag)
+
+for tag in bad_tags:
+    tag_set.remove(tag)
+print(tag_set)
+
+song_data_users['Retro Words'] = tag_set
+print(song_data_users)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
