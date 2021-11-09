@@ -3086,17 +3086,162 @@ print(frozen_tag_difference)
 regular_tag_sd = music_tags ^ my_tags
 print(regular_tag_sd)
 
+// Контейнеры Python:
+
+Любой объект, в котором хранятся данные, называется контейнером.
+
+Списки - это упорядоченная группа элементов. Элементы можно добавлять, удалять, получать к ним доступ и изменять.
+products = ['t-shirt', 'pants', 'shoes', 'dress', 'blouse']
+ 
+products.append('jacket')
+products.sort()
+products.remove('shoes')
+
+/
+
+Кортежи - это неизменяемые объекты, которые группируют вместе несколько элементов. Они похожи на списки, за исключением того, что они не могут быть изменены после создания.
+searched_terms = ('clothes', 'phone', 'app', 'purchase', 'clothes', 'store', 'app', 'clothes')
+ 
+term = searched_terms[2]
+num_of_occurrences = searched_terms.count('clothes')
+
+/
+
+Словари - это неупорядоченные группы пар "ключ-значение".
+orders = {'order_4829': {'type': 't-shirt', 'size': 'large', 'price': 9.99}, 
+          'order_6184': {'type': 'pants', 'size': 'medium', 'price': 14.99}
+         }
+ 
+order_4829_price = orders['order_4829']['price']
+order_6184_size = orders['order_4829']['size']
+orders['order_4829']['size'] = 'x-large'
+num_of_orders = len(orders)
+
+/
+
+Наборы - это неупорядоченные группы элементов, которые не могут содержать дубликатов, элементы не могут быть изменены.
+
+old_products_set = {'t-shirt', 'pants', 'shoes'}
+new_products_set = {'t-shirt', 'pants', 'blouse', 'dress'}
+updated_products = new_products_set | old_products_set
+removed_products = old_products_set - new_products_set
+
+/
+
+company_name = 'Roga i kopita'
+company_location = (55.825938, 49.146342)
+company_products = ['milk', 'soda', 'drugs', 'cars', 'eggs', 'zoos']
+company_data = {'name': company_name, 'location': company_location, 'products': company_products}
+
+рассмотрим эти специализированные контейнеры из collections модуля Python.
+
+// специализированные контейнеры:
+
+Классы из collections модуля очень похожи на встроенные контейнеры, которые мы уже использовали, но они содержат новые методы и утилиты. 
+Каждый из этих специализированных контейнеров ориентирован на определенное улучшение своего встроенного аналога, такое как оптимизация производительности, 
+лучшая организация, меньшее количество шагов для выполнения задач и многое другое!
+Чтобы использовать классы из collections модуля, нам сначала нужно импортировать модуль в наш код.
+
+# To import a single class or multiple classes
+from collections import name_of_class, name_of_another_class
+ 
+# To import all classes in the collections module
+from collections import *
+ 
+# Another way to import all classes in a module
+import collections
+
+/
+Расширенные контейнеры:
+
+-deque
+-namedtuple
+-Counter
+-defaultdict
+-OrderedDict
+-ChainMap
+
+Упаковщики для контейнеров:
+
+-UserDict
+-UserList
+-UserString
+/
+
+В качестве более конкретного примера, вот как OrderedDict будет выглядеть импорт:
+
+from collections import OrderedDict
+ 
+orders = OrderedDict({'order_4829': {'type': 't-shirt', 'size': 'large', 'price': 9.99},
+          'order_6184': {'type': 'pants', 'size': 'medium', 'price': 14.99},
+          'order_2905': {'type': 'shoes', 'size': 12, 'price': 22.50}})
+ 
+orders.move_to_end('order_4829')
+orders.popitem()
+
+// Deque:
+
+мы обрабатываем большой документ, содержащий отчеты об ошибках для приложения. Чтобы расставить приоритеты для наиболее важных ошибок, мы хотим, 
+чтобы любые обычные отчеты об ошибках добавлялись в конец списка, а ошибки с более высоким приоритетом были в начале списка 
+(что-то вроде списка приоритетов). По мере того, как мы исправляем ошибки, их можно будет удалить из начала списка.
+
+bug_data = []
+loaded_bug_reports = get_all_bug_reports()
+ 
+for bug in loaded_bug_reports:
+    if bug['priority'] == 'high':
+        # A list uses the insert method to append to the front
+        bug_data.insert(0, bug)
+    else:
+        bug_data.append(bug)
+ 
+# A list must provide an index to pop
+next_bug_to_fix = bug_data.pop(0)
+
+/
+
+Давайте посмотрим на нашу ту же программу, но реализованную с помощью deque:
+
+from collections import deque 
+bug_data = deque()
+loaded_bug_reports = get_all_bug_reports()
+ 
+for bug in loaded_bug_reports:
+    if bug['priority'] == 'high':
+        # With a deque, we can append to the front directly
+        bug_data.appendleft(bug)
+    else:
+        bug_data.append(bug)
+ 
+# With a deque, we can pop from the front directly
+next_bug_to_fix = bug_data.popleft()
+
+/
+
+from helper_functions import process_csv_supplies
+from collections import deque
+
+csv_data = process_csv_supplies()[1:]
+# Here is a sample of 2 elements in csv_data:
+# [ ['nylon', '10', 'unimportant'], ['wool', '1', 'important'] ]
+supplies_deque = deque()
+
+for row in csv_data:
+    if row[2] == 'important':
+        supplies_deque.appendleft(tuple(row))
+    else:
+        supplies_deque.append(tuple(row))
+
+ordered_important_supplies = deque()
+for i in range(25):
+    ordered_important_supplies.append(supplies_deque.popleft())
 
 
+ordered_unimportant_supplies = deque()
+for i in range(10):
+    ordered_unimportant_supplies.append(supplies_deque.pop())
 
-
-
-
-
-
-
-
-
+// Именованный кортеж:
 
 
 
