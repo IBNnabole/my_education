@@ -3243,6 +3243,211 @@ for i in range(10):
 
 // Именованный кортеж:
 
+Кортежи, еще один распространенный встроенный контейнер, очень полезны для группировки данных, которые не нужно изменять в будущем. 
+Однако кортежи сталкиваются с проблемой, когда в них размещаются различные данные и даже вложенные данные.
+
+namedtuple Коллекция позволяет нам иметь неизменный объект кортежа, но каждый элемент становится самодокументированным. 
+
+from collections import namedtuple
+
+# General Structure: namedtuple(typename, field_names, *, rename=False, defaults=None, module=None) 
+ActorData = namedtuple('ActorData', ['name', 'birth_year', 'movie', 'movie_release_date'])
+actor_data = ActorData('Leonardo DiCaprio', 1974, 'Titanic', 1997)
+print(actor_data.name) // Leonardo DiCaprio
+
+Некоторые моменты, о которых следует помнить namedtuples:
+
+1) Возможно, вы заметили, что мы используем соглашение CapWords при определении нашего namedtuple. Это потому, что namedtuple фактически возвращает подкласс и,
+следовательно, подпадает под соглашения, которые мы используем для классов.
+2) В качестве field_names альтернативы аргумент может быть отдельной строкой с каждым именем поля, разделенным пробелами и / или запятыми, например, 
+'x y' или 'x, y'.
+3) На первый взгляд namedtuples может показаться, что он пытается воспроизвести словарь. Хотя ключевая идея маркировки свойств одинакова в обеих структурах, 
+они namedtuples имеют некоторые ключевые преимущества по сравнению с обычным словарем:
+4) Они неизменны и поддерживают свой порядок, в то время как словарь - нет.
+5) Они более легкие, чем словари, и занимают не больше памяти, чем обычный кортеж.
+
+Есть и другие полезные методы, которые namedtuple использует, например преобразование из namedtuple в dict, замена элементов и имен полей и
+даже установка значений по умолчанию для атрибутов.
+
+from collections import namedtuple
+clothes = [('t-shirt', 'green', 'large', 9.99),
+           ('jeans', 'blue', 'medium', 14.99),
+           ('jacket', 'black', 'x-large', 19.99),
+           ('t-shirt', 'grey', 'small', 8.99),
+           ('shoes', 'white', '12', 24.99),
+           ('t-shirt', 'grey', 'small', 8.99)]
+
+ClothingItem = namedtuple('ClothingItem', ['type', 'color', 'size', 'price'])
+new_coat = ClothingItem('coat', 'black', 'small', 14.99)
+coat_cost = new_coat.price
+
+updated_clothes_data = []
+for elem in clothes:
+  updated_clothes_data.append(ClothingItem(elem[0], elem[1], elem[2], elem[3]))
+
+print(updated_clothes_data)
+
+// DefaultDict:
+
+Словари - еще один популярный тип сборников, которые мы используем в наших программах. Хотя они отлично подходят для многих ситуаций, приложения, 
+которые в значительной степени от них зависят, всегда сталкиваются с общими проблемами. Этот вопрос касается того, как обращаться с недостающими ключами!
+Когда мы пытаемся получить доступ к паре "ключ-значение" в словаре, но ключ не существует, словарь обычно генерирует файл KeyError
+
+prices = {'jeans': 19.99, 'shoes': 24.99, 't-shirt': 9.99, 'blouse': 19.99}
+print(prices['jacket']) // KeyError: 'jacket'
+
+Работа с частыми KeyError исключениями может быть довольно обременительной, и в некоторых случаях лучше избегать выдачи ошибки. Один из способов решения 
+этой проблемы в Python - наличие в словаре отсутствующего значения по умолчанию, и это именно то, что defaultdict делает коллекция.
+
+from collections import defaultdict
+validate_prices = defaultdict(lambda: 'No Price Assigned')
+
+Затем мы можем установить ключи и значения как обычные dict:
+validate_prices['jeans'] = 19.99
+validate_prices['shoes'] = 24.99
+validate_prices['t-shirt'] = 9.99
+validate_prices['blouse'] = 19.99
+
+print(validate_prices['jacket']) // No Price Assigned
+
+Обратите внимание на следующее:
+
+1) Мы устанавливаем значение по умолчанию, используя лямбда-выражение.
+2) Каждый раз, когда мы пытаемся получить доступ к несуществующему ключу, он автоматически обновляет наш defaultdict объект, 
+создавая новую пару «ключ-значение» с использованием отсутствующего ключа и значения по умолчанию.
+
+/
+
+from collections import defaultdict
+site_locations = {'t-shirt': 'Shirts',
+                  'dress shirt': 'Shirts',
+                  'flannel shirt': 'Shirts',
+                  'sweatshirt': 'Shirts',
+                  'jeans': 'Pants',
+                  'dress pants': 'Pants',
+                  'cropped pants': 'Pants',
+                  'leggings': 'Pants'
+                  }
+updated_products = ['draped blouse', 'leggings', 'undershirt', 'dress shirt', 'jeans', 'sun dress', 'flannel shirt', 'cropped pants', 'dress pants', 't-shirt', 'camisole top', 'sweatshirt']
+
+validated_locations = defaultdict(lambda: 'TODO: Add to website')
+validated_locations.update(site_locations)
+
+for item in updated_products:
+    site_locations[item] = validated_locations[item]
+
+print(site_locations)
+
+// OrderedDict:
+
+При отслеживании множества различных словарей с помощью встроенных контейнеров Python мы могли бы попробовать хранить словари в списке или 
+даже в словаре словарей. В некоторых случаях это может сработать, но может возникнуть несколько проблем.
+При хранении словарей в списке порядок сохраняется, но мы должны получить доступ к элементам по их индексу, прежде чем мы сможем получить доступ к словарю:
+
+first_order = {'order_2905': {'type': 'shoes', 'size': 12, 'price': 22.50}}
+second_order = {'order_6184': {'type': 'pants', 'size': 'medium', 'price': 14.99}}
+third_order = {'order_4829': {'type': 't-shirt', 'size': 'large', 'price': 9.99}}
+ 
+list_of_dicts = [first_order, second_order, third_order]
+print(list_of_dicts[1]['order_6184']['price']) # 14.99
+
+С другой стороны, в зависимости от версии Python, dictконтейнер может сохранять порядок, но перемещать элементы сложно:
+
+dict_of_dicts = {}
+dict_of_dicts.update(first_order)
+dict_of_dicts.update(second_order)
+dict_of_dicts.update(third_order)
+ 
+print(list_of_dicts[1]['order_6184']['price']) # 14.99
+
+dictКласс неупорядочен в более ранних версиях python, поэтому для его реализации должна быть версия 3.6 или выше.
+
+Чтобы решить эти проблемы, мы можем использовать OrderedDict!
+OrderedDict Контейнер позволяет нам доступ к значениям с помощью клавиш, но он также сохраняет порядок элементов внутри него.
+
+from collections import OrderedDict
+orders = OrderedDict()
+
+# Порядок данных сохраняется при добавлении в OrderedDict:
+orders.update({'order_2905': {'type': 'shoes', 'size': 12, 'price': 22.50}})
+orders.update({'order_6184': {'type': 'pants', 'size': 'medium', 'price': 14.99}})
+orders.update({'order_4829': {'type': 't-shirt', 'size': 'large', 'price': 9.99}})
+
+Доступ к данным можно получить с помощью ключей, как в обычном словаре:
+# Get a specific order
+find_order = orders['order_2905']
+
+Порядок можно получить, преобразовав его в список и получив доступ по индексу:
+# Get the data in a list format
+orders_list = list(orders.items())
+third_order = orders_list[2]
+
+При использовании OrderedDict, мы можем использовать его методы для перемещения данных. Мы можем переместить элемент назад или вперед и
+вставить данные сзади или спереди OrderedDict:
+
+# Move an item to the end of the OrderedDict
+orders.move_to_end('order_4829')
+ 
+# Pop the last item in the dictionary
+last_order = orders.popitem()
+
+Эти два метода также принимают логические аргументы, которые определяют, перемещается / выталкивается элемент с передней или задней части OrderedDict.
+
+/
+
+from collections import OrderedDict
+
+order_data = [['Order: 1', 'purchased'],
+              ['Order: 2', 'purchased'],
+              ['Order: 3', 'purchased'],
+              ['Order: 4', 'returned'],
+              ['Order: 5', 'purchased'],
+              ['Order: 6', 'canceled'],
+              ['Order: 7', 'returned'],
+              ['Order: 8', 'purchased'],
+              ['Order: 9', 'returned'],
+              ['Order: 10', 'canceled'],
+              ['Order: 11', 'purchased'],
+              ['Order: 12', 'returned'],
+              ['Order: 13', 'purchased'],
+              ['Order: 14', 'canceled'],
+              ['Order: 15', 'purchased']]
+
+orders = OrderedDict(order_data)
+to_move = []
+to_remove = []
+
+for i in order_data:
+  if i[1] == 'returned':
+    to_move.append(i[0])
+  elif i[1] == 'canceled':
+    to_remove.append(i[0])
+
+for i in to_remove:
+  orders.pop(i)
+
+for a in to_move:
+  orders.move_to_end(a)
+
+print(to_move, to_remove)
+print(orders)
+
+// ChainMap:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
