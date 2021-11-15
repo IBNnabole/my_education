@@ -3385,6 +3385,8 @@ third_order = orders_list[2]
 При использовании OrderedDict, мы можем использовать его методы для перемещения данных. Мы можем переместить элемент назад или вперед и
 вставить данные сзади или спереди OrderedDict:
 
+включить второй аргумент, как False в, move_to_end чтобы указать, что элемент будет перемещен во внешний интерфейс, а не в серверную часть.
+
 # Move an item to the end of the OrderedDict
 orders.move_to_end('order_4829')
  
@@ -3789,7 +3791,9 @@ for bundle in bundles:
 
 print(promoted_bundles)
 
+/
 
+counted_data.most_common(3) - вернет три первых результата.
 
 
 
