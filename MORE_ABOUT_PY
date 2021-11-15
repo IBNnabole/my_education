@@ -3795,9 +3795,322 @@ print(promoted_bundles)
 
 counted_data.most_common(3) - вернет три первых результата.
 
+// управление ресурсами:
+
+Диспетчер контекста - это объект, который заботится о назначении и освобождении ресурсов (файлов, подключений к базе данных и т. Д.).
+
+with open("file_name.txt", "w") as file:
+   file.write("How you gonna win when you ain't right within?")
+
+Один из наиболее распространенных способов управления ресурсами в Python - убедиться, что файлы, которые мы используем в наших скриптах, 
+должным образом закрыты после использования. (with оператор)
+
+Вот как выглядел бы код без использования диспетчера контекста with:
+
+file = open("file_name.txt", "w")
+try:
+   file.write("How you gonna win when you ain't right within?")
+finally:
+   file.close()
+
+Альтернатива использованию withпотребует от нас вручную открывать (использовать open()) и закрывать (использовать close()) файл, над которым мы работаем.
+1)
+try:
+  open_file = open('file_name.txt', 'r')
+  print(open_file.read())
+finally:
+  open_file.close()
+2)
+
+with open('file_name.txt', 'r') as open_file:
+  print(open_file.read())
+
+// Менеджеры контекста на основе классов:
 
 
+Один из двух подходов к созданию менеджеров контекста называется подходом на основе классов . Подход к написанию менеджеров контекста на основе классов 
+требует явного определения и реализации следующих двух методов внутри класса:
 
+1) __enter__метод
+
+__enter__Метод позволяет настроить менеджер контекста. Этот метод обычно заботится об открытии ресурсов (например, файлов). Этот метод также начинает так 
+называемый контекст времени выполнения - период времени, в течение которого выполняется сценарий. В наших предыдущих примерах это было время, 
+когда with выполнялся код, переданный в блок кода оператора (в основном все, что находится под with оператором).
+
+2) __exit__метод
+
+__exit__ Обеспечивает разбивку менеджера контекста. Этот метод обычно заботится о закрытии открытых ресурсов, которые больше не используются.
+
+
+class ContextManager:
+  def __init__(self):
+    print('Initializing class...')
+ 
+  def __enter__(self):
+    print('Entering context...')
+ 
+  def __exit__(self, *exc):
+    print('Exiting context...')
+
+with ContextManager() as cm:
+  print('Code inside with statement')
+
+
+Выше показано, что наш класс диспетчера контекста выполняется в следующей последовательности:
+
+__init__ метод
+__enter__ метод
+Код в with блоке оператора
+__exit__ метод
+
+/
+
+class PoemFiles:
+  def __init__(self):
+    print('Creating Poems!')
+  def __enter__(self):
+    print('Opening poem file')
+  def __exit__(self, *exc):
+    print('Closing poem file')
+
+with PoemFiles() as manager:
+  print('Hope is the thing with feathers')
+
+
+// Continue:
+
+class WorkWithFile:
+  def __init__(self, file, mode):
+    self.file = file
+    self.mode = mode
+ 
+  def __enter__(self):
+    self.opened_file = open(self.file, self.mode)
+    return self.opened_file
+ 
+  def __exit__(self, *exc):
+    self.opened_file.close()
+
+
+1) __init__ Метод:
+
+Этот метод является стандартным для большинства классов, даже для тех, которые сами не являются менеджерами контекста. В этом случае у нас есть три параметра:
+
+1.1) self: Это стандарт для любого класса, с которым мы работаем, и позволяет нам работать с методами и свойствами, которые мы назначаем экземпляру класса.
+1.2) file: Поскольку мы работаем с файлами, нам нужно иметь возможность принимать аргумент файла, когда мы вызываем класс с withоператором.
+1.3) mode: Наконец, нам нужно предоставить файлу режим. Это позволяет нам управлять тем, что на самом деле будет делать наш диспетчер контекста, например, 
+чтением, записью или и тем, и другим!
+
+Оба file и mode аргументы позволяют нам выполнить следующий синтаксис:
+with WorkWithFile('file.txt', 'r')
+
+2) __enter__ Метод:
+
+Здесь мы открываем файл, над которым хотим работать. Поскольку любой новый экземпляр нашего диспетчера контекста будет иметь свойство fileand mode, 
+мы можем передать их в open() функцию, чтобы открыть определенный файл в определенном режиме. Затем мы сохраняем его как вызываемую переменную self.open_file,
+и возвращаем ее.
+
+При возврате self.open_fileфайл будет передан в переменную, которую мы определяем, когда вызываем его с помощью with оператора. Так например:
+with WorkWithFile('file.txt', 'r') as file
+
+Назначит открытый файл 'file.text'переменной с именем file, следующей за asпредложением, что позволит нам использовать его в with блоке кода оператора 
+
+3) __exit__ Метод:
+
+Наконец, что является одним из самых важных шагов, мы должны закрыть файл, над которым мы работаем. Здесь мы все еще ведем *exc, 
+но не будем касаться этого до следующего упражнения. На данный момент этот метод несет полную ответственность за закрытие ресурса, 
+в котором мы открылись __enter__.
+
+Теперь, когда мы создали наш диспетчер контекста, теперь мы можем использовать его в такой withинструкции:
+
+with WorkWithFile("file.txt", "r") as file:
+  print(file.read())
+
+/
+
+class PoemFiles:
+  def __init__(self, poem_file, mode):
+    print('Starting up a poem context manager')
+    self.file = poem_file
+    self.mode = mode
+  
+  def __enter__(self):
+    print('Opening poem file')
+    self.opened_poem_file = open(self.file, self.mode)
+    return self.opened_poem_file
+  
+  def __exit__(self, *exc):
+    print('Closing poem file')
+    self.opened_poem_file.close()
+
+with PoemFiles('poem.txt', 'w') as open_poem_file:
+  open_poem_file.write('Hope is the thing with feathers')
+
+// Обработка исключений:
+
+В диспетчере контекста __exit__ метод отвечает за обработку любых исключений. Он может реализовать, как закрыть файл и любые другие операции, 
+которые мы хотим выполнить, если возникнет исключение.
+__exit__ методу требуется четыре аргумента!
+
+
+У __exit__ метода есть три обязательных аргумента (в дополнение к self):
+
+Тип исключения: который указывает класс исключения (например, AttributeError класс или NameError класс).
+Значение исключения: фактическое значение ошибки.
+Отслеживание: отчет с подробным описанием последовательности шагов, вызвавших ошибку, и всех деталей, необходимых для исправления ошибки.
+
+
+class OpenFile:
+ 
+ def __init__(self, file, mode):
+   self.file = file
+   self.mode = mode
+ 
+ def __enter__(self):
+   self.opened_file = open(self.file, self.mode)
+   return self.opened_file
+ 
+ def __exit__(self, exc_type, exc_val, traceback):
+   print(exc_type)
+   print(exc_val)
+   print(traceback)
+   self.opened_file.close()
+
+Мы можем увидеть результат нашей простой обработки исключений, когда мы запускаем наш withоператор с преднамеренной ошибкой:
+
+with OpenFile("file.txt", "r") as file:
+  # .see() is not a real method
+  print(file.see())
+
+После выполнения with инструкции мы получаем указанное выше сообщение об ошибке, которое сообщает нам, что у нас есть объект AttributeError
+
+Напротив, если в приведенном withвыше утверждении не возникает ошибки , __exit__ метод напечатал бы:
+None
+None
+None
+
+Обратите внимание, что exc_type, exc_value и traceback- совершенно произвольные имена. Мы можем использовать любое имя для этих параметров, 
+если оно не мешает читаемости нашего кода. В общем, лучше всего быть как можно более информативным!
+
+/
+
+class PoemFiles:
+
+  def __init__(self, poem_file, mode):
+    print(' \n -- Starting up a poem context manager -- \n ')
+    self.file = poem_file
+    self.mode = mode
+
+  def __enter__(self):
+    print('Opening poem file')
+    self.opened_poem_file = open(self.file, self.mode)
+    return self.opened_poem_file
+
+  def __exit__(self, exc_type, exc_value, traceback):
+    print(exc_type)
+    print(exc_value)
+    print(traceback)
+    
+    self.opened_poem_file.close()
+
+#with PoemFiles('poem.txt', 'r') as file:
+ # print("---- Exception data below ----")
+ # print(file.uppercasewords()) <------------------------- error
+
+
+with PoemFiles('poem.txt', 'r') as file2:
+  print(file2.read())
+  print("---- Exception data below ----") <---------------------- good one
+
+// Continue:
+
+Печать исключений - не единственный способ их обработки в __exit__ методе. Исключение, возникающее в диспетчере контекста, можно обработать двумя способами:
+
+1) Если мы хотим выдать ошибку при ее возникновении, мы можем:
+Вернуться False после .close() метода
+Ничего не делать
+
+2) Если мы хотим подавить ошибку, мы можем:
+Вернуться True после .close() метода
+
+class OpenFile:
+ 
+ def __init__(self, file, mode):
+   self.file = file
+   self.mode = mode
+ 
+ def __enter__(self):
+   self.opened_file = open(self.file, self.mode)
+   return self.opened_file
+ 
+ def __exit__(self, ex_type, ex_val, traceback):
+   print(ex_type, ex_val, traceback)
+   print("The exception has been handled")
+   self.file.close()
+   return True <------------
+
+with OpenFile("file.txt", "r") as file:
+ # .see is not a real method
+ print(file.see()) // The exception has been handled
+ 
+with OpenFile("file.txt", "r") as file:
+ print(file.read()) // None, None, None
+
+
+Сообщение об ошибке, которое мы закодировали вручную, печатается, но программа не генерирует автоматическое сообщение об ошибке.
+Оба with заявления были выполнены.
+Если бы мы не вернулись True, второй (и все последующие) with операторы не запустились бы, поскольку возникнет исключение.
+
+Кроме того, мы можем выбрать обработку определенного исключения, а также его подавление! Это полезно, если мы хотим, чтобы наш диспетчер контекста 
+не блокировал выполнение другого кода, но также настраивал вывод при возникновении определенного исключения. 
+
+class OpenFile:
+ 
+ def __init__(self, file, mode):
+   self.file = file
+   self.mode = mode
+ 
+ def __enter__(self):
+   self.opened_file = open(self.file, self.mode)
+   return self.opened_file
+ 
+ def __exit__(self, ex_type, ex_val, traceback):
+ 
+   if isinstance(exc_value, IndexError):
+      # Handle TypeError here...
+      print("The exception has been handled")
+      return True
+ 
+   self.file.close()
+
+/
+
+class PoemFiles:
+
+  def __init__(self, poem_file, mode):
+    print(' \n -- Starting up a poem context manager -- \n')
+    self.file = poem_file
+    self.mode = mode
+
+  def __enter__(self):
+    print(' \n --  Opening poem file -- \n')
+    self.opened_poem_file = open(self.file, self.mode)
+    return self.opened_poem_file
+
+  def __exit__(self, exc_type, exc_value, traceback):
+    print(exc_type, exc_value, traceback, '\n')
+    if isinstance(exc_value, AttributeError):
+      self.opened_poem_file.close()
+      return True
+    
+
+with PoemFiles('poem.txt', 'r') as file:
+  print("---- Exception data below ---- \n ")
+  print(file.uppercasewords())
+
+with PoemFiles('poem.txt', 'r') as file2:
+  print(file2.read())
+  print(" \n ---- Exception data below ---- \n ")
 
 
 
