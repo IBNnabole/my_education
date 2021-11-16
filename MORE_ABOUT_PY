@@ -4113,6 +4113,157 @@ with PoemFiles('poem.txt', 'r') as file2:
   print(" \n ---- Exception data below ---- \n ")
 
 
+// Contextlib:
+ 
+contextlib Модуль позволяет создавать менеджер контекста с использованием функции генератора (функция , которая использует yield вместо return) и contexlib 
+декоратор - @contextmanager. Вместо того , чтобы создать класс и definining __enter__и __exit__ методы, мы можем использовать простую функцию!
+
+Во-первых, нам нужно будет импортировать встроенный модуль в наш скрипт и взять @contextmanager декоратор:
+from contextlib import contextmanager
+
+
+После того, как мы успешно импортировали модуль, мы можем автоматически использовать @contextmanager декоратор, чтобы обернуть простую функцию генератора:
+
+from contextlib import contextmanager
+ 
+@contextmanager
+def open_file_contextlib(file, mode):
+  opened_file = open(file, mode)
+ try:
+   yield opened_file
+ finally:
+   opened_file.close()
+
+После того, как мы создали эту функцию и обозначили ее как диспетчер контекста с помощью @contextmanager декоратора, мы можем сразу же использовать ее, 
+как и раньше, в with операторе:
+
+with open_file_contextlib('file.txt', 'w') as opened_file:
+ opened_file.write('We just made a context manager using contexlib')
+
+/
+
+from contextlib import contextmanager
+
+@contextmanager
+def poem_files(file, mode):
+  print('Opening File')
+  open_poem_file = open(file, mode)
+  try:
+    yield open_poem_file
+  finally:
+    print('Closing File')
+    open_poem_file.close()
+
+
+with poem_files('poem.txt', 'a') as opened_file:
+  print('Inside yield') 
+  opened_file.write('Rose is beautiful, Just like you.')
+
+// Обработка ошибок Contextlib:
+
+Для метода декоратора ошибки чаще всего устраняются внутри exceptблока. Мы будем строить поверх нашего try/ finallyblock, добавляя except. 
+Есть два основных способа исправления ошибок:
+
+1) Чтобы выдать ошибку и остановить выполнение всей нашей программы, мы можем:
+Просто ничего не делать, исключая except блок
+2) Чтобы поймать ошибки и продолжить выполнение нашей программы, мы можем:
+Обработайте исключение через exceptблок.
+
+/
+
+from contextlib import contextmanager
+ 
+@contextmanager
+def open_file_contextlib(file, mode):
+  open_file = open(file, mode)
+ 
+try:
+   yield open_file
+ 
+ # Exception Handling
+ except Exception as exception:
+   print('We hit an error: ' + str(exception))
+ 
+ finally:
+   open_file.close()
+ 
+with open_file_contextlib('file.txt', 'w') as opened_file:
+ opened_file.sign('We just made a context manager using contexlib')
+
+Уведомление:
+
+Включение except статьи
+В exceptпопытки поймать общий Exception и, если он попал, сохраняет его в переменной exception.
+Примечание: мы можем использовать любой объект исключения, а не только общий, если мы знаем конкретное исключение, которое пытаемся перехватить.
+Затем обработчик распечатывает ошибку.
+
+/
+
+from contextlib import contextmanager
+ 
+@contextmanager
+def poem_files(file, mode):
+  print('Opening File')
+  open_poem_file = open(file, mode)
+  try:
+    yield open_poem_file
+  except AttributeError as e:
+    print(e)
+
+  finally:
+    print('Closing File')
+    open_poem_file.close()
+
+with poem_files('poem.txt', 'a') as opened_file:
+  print('Inside yield')
+  opened_file.sign('Buzz is big city. big city is buzz.')
+
+
+// Вложенные менеджеры контекста:
+
+Представим, что у нас есть два файла: teacher.txt файл и файл student.txt. Мы хотим скопировать всю информацию из дела ученика учителям. 
+Наш код может выглядеть так:
+
+with open('teacher.txt', 'w') as teacher, open('student.txt', 'r') as student:
+ teacher.write(student.read())
+
+Здесь мы решили использовать open() встроенную функцию, а не настраиваемый менеджер контекста. Вполне возможно использовать наши собственные вместо open()функции.
+         
+Обратите внимание, что этот синтаксис почти аналогичен первому методу. Однако следует отметить некоторые отличия:
+with Заявление вызывается дважды
+Производство with утверждение вложено в коде блоке исходящего with заявления
+Этот метод, хотя и немного более длинный, дает более четкое изображение nesting и предпочтителен при работе с более чем двумя диспетчерами контекста.
+
+/
+
+from contextlib import contextmanager
+ 
+@contextmanager
+def poem_files(file, mode):
+  print('Opening File', file)
+  open_poem_file = open(file, mode)
+  try:
+    yield open_poem_file
+  finally:
+    print('Closing File', file)
+    open_poem_file.close()
+
+@contextmanager
+def card_files(file, mode):
+  print('Opening File', file)
+  open_card_file = open(file, mode)
+  try:
+    yield open_card_file
+  finally:
+    print('Closing File', file)
+    open_card_file.close()
+
+with poem_files('poem.txt', 'r') as poem:
+   with card_files('card.txt', 'w') as card:
+     print(poem, card)
+     card.write(poem.read())
+
+
 
 
 
