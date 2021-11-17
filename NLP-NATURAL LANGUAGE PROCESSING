@@ -1,0 +1,477 @@
+Очистка и подготовка имеют решающее значение для многих задач, и НЛП не исключение. Предварительная обработка текста обычно является первым шагом, 
+который вы делаете, когда сталкиваетесь с задачей НЛП.
+Без предварительной обработки, ваш компьютер интерпретирует "the", "The" и "<p>The" как совершенно разные слова. Здесь вы можете сделать МНОГО, 
+в зависимости от необходимого вам форматирования. К счастью для вас, Regex и NLTK сделают большую часть этого за вас! Общие задачи включают:
+
+1) Удаление шума - удаление текста от форматирования (например, HTML-тегов).
+2) Токенизация - разбиение текста на отдельные слова.
+3) Нормализация - очистка текстовых данных любым другим способом:
+
+Стемминг - это тупой топор, позволяющий отрубить префиксы и суффиксы слов. «Освистывать» и «освистывать» превращаются в «бу», но «компьютер» может стать 
+«вычислимым», а «есть» останется «есть».
+Лемматизация - это скальпель, с помощью которого слова сводятся к их коренным формам. Например, сообразительный лемматизатор НЛТК знает, что «есть» и «есть» 
+связаны с «быть».
+Другие распространенные задачи включают в себя нижний регистр, удаление игнорируемых слов, исправление орфографии и т.Д.
+
+/
+
+# regex for removing punctuation!
+import re
+# nltk preprocessing magic
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
+from nltk.stem import WordNetLemmatizer
+# grabbing a part of speech function:
+from part_of_speech import get_part_of_speech
+
+text = "So many squids are jumping out of suitcases these days that you can barely go anywhere without seeing one burst forth from a tightly packed valise. I went to the dentist the other day, and sure enough I saw an angry one jump out of my dentist's bag within minutes of arriving. She hardly even noticed."
+
+cleaned = re.sub('\W+', ' ', text)
+tokenized = word_tokenize(cleaned)
+
+stemmer = PorterStemmer()
+stemmed = [stemmer.stem(token) for token in tokenized]
+
+## -- CHANGE these -- ##
+lemmatizer = WordNetLemmatizer()
+lemmatized = [lemmatizer.lemmatize(token, get_part_of_speech(token)) for token in tokenized]
+
+print("Stemmed text:")
+print(stemmed)
+print("\nLemmatized text:")
+print(lemmatized)
+
+// parsing-text:
+
+Может быть полезно знать, как слова соотносятся друг с другом и с основным синтаксисом (грамматикой). Синтаксический анализ - это процесс НЛП, 
+связанный с сегментацией текста на основе синтаксиса.
+
+у NLTK есть несколько уловок в рукаве, которые могут вам помочь:
+
+1) Маркировка частей речи (POS-теги) идентифицирует части речи (глаголы, существительные, прилагательные и т. Д.). NLTK может сделать это быстрее 
+(а может быть, точнее), чем ваш учитель грамматики.
+2) Распознавание именованных сущностей (NER) помогает идентифицировать имена собственные (например, «Наталья» или «Берлин») в тексте. 
+Это может быть ключом к теме текста, и NLTK уловит многие из них.
+3) Деревья грамматики зависимостей помогают понять взаимосвязь между словами в предложении. Это может быть утомительной задачей для человека, 
+поэтому библиотека Python spaCy к вашим услугам, даже если она не всегда идеальна.
+4) Разбор регулярных выражений с использованием re библиотеки Python позволяет учесть немного больше нюансов. В сочетании с тегами POS вы можете идентифицировать 
+определенные фрагменты фраз. Сам по себе он может находить вам адреса, электронные письма и многие другие распространенные шаблоны в больших фрагментах текста.
+
+/
+
+import spacy
+from nltk import Tree
+from squids import squids_text
+
+dependency_parser = spacy.load('en')
+
+parsed_squids = dependency_parser(squids_text)
+
+# Assign my_sentence a new value:
+my_sentence = "Everyday i eat the same food"
+my_parsed_sentence = dependency_parser(my_sentence)
+
+def to_nltk_tree(node):
+  if node.n_lefts + node.n_rights > 0:
+    parsed_child_nodes = [to_nltk_tree(child) for child in node.children]
+    return Tree(node.orth_, parsed_child_nodes)
+  else:
+    return node.orth_
+
+for sent in parsed_squids.sents:
+  to_nltk_tree(sent.root).pretty_print()
+  
+for sent in my_parsed_sentence.sents:
+ to_nltk_tree(sent.root).pretty_print()
+
+// Language Models: Bag-of-Words:
+
+Языковые модели - это вероятностные компьютерные модели языка. Мы создаем и используем эти модели, чтобы определить вероятность того, 
+что будет использован определенный звук, буква, слово или фраза. После обучения модель ее можно протестировать на новых текстах.
+
+Одной из наиболее распространенных языковых моделей является модель униграммы, статистическая языковая модель, широко известная как « мешок слов» . 
+Как следует из названия, в сумке со словами нет особого порядка в хаосе! Что у него есть, так это подсчет каждого экземпляра для каждого слова. 
+
+/
+
+import re, nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+# importing Counter to get word counts for bag of words
+from collections import Counter
+# importing a passage from Through the Looking Glass
+from looking_glass import looking_glass_text
+# importing part-of-speech function for lemmatization
+from part_of_speech import get_part_of_speech
+
+# Change text to another string:
+text = 'hi my name is Boris'
+
+cleaned = re.sub('\W+', ' ', text).lower()
+tokenized = word_tokenize(cleaned)
+
+stop_words = stopwords.words('english')
+filtered = [word for word in tokenized if word not in stop_words]
+
+normalizer = WordNetLemmatizer()
+normalized = [normalizer.lemmatize(token, get_part_of_speech(token)) for token in filtered]
+
+bag_of_looking_glass_words = Counter(normalized)
+print(bag_of_looking_glass_words)
+
+// N-Gram и NLM:
+
+Для анализа целых фраз или прогнозирования языка вам может понадобиться модель, которая обращает внимание на соседей каждого слова. 
+В отличие от набора слов, модель n-грамм рассматривает последовательность из некоторого числа ( n ) единиц и вычисляет вероятность каждой единицы 
+в основной части языка с учетом предыдущей последовательности длины n . Из-за этого вероятности n -грамм с большими значениями n могут быть впечатляющими 
+при предсказании языка.
+
+Модель биграмм (где n равно 2) может дать нам следующие частоты счета:
+{('', 'the'): 2, ('the', 'squids'): 2, ('squids', 'jumped'): 1, ('jumped', 'out'): 1, ('out', 'of'): 1, ('of', 'the'): 1, ('the', 'suitcases'): 1, ('suitcases', ''): 1, ('squids', 'were'): 1, ('were', 'furious'): 1, ('furious', ''): 1}
+
+Есть пара проблем с моделью n грамм:
+1) Как ваша языковая модель может понять предложение «Кот заснул в почтовом ящике», если раньше он никогда не видел слова «почтовый ящик»? 
+Во время обучения ваша модель, вероятно, встретит тестовые слова, с которыми она никогда раньше не сталкивалась (эта проблема также касается набора слов). 
+Тактика, известная как сглаживание языка, может помочь скорректировать вероятности для неизвестных слов, но она не всегда идеальна.
+2) Для модели, которая более точно предсказывает шаблоны человеческого языка, вы хотите, чтобы n (длина вашей последовательности) была как можно больше. 
+Так у вас будет более естественное звучание языка, не так ли? Что ж, по мере увеличения длины последовательности количество примеров каждой последовательности 
+в вашем обучающем корпусе сокращается. Если будет слишком мало примеров, у вас не будет достаточно данных, чтобы делать много прогнозов.
+
+Введите нейронные языковые модели (NLM)! Большая часть недавней работы в рамках НЛП включала разработку и обучение нейронных сетей, 
+чтобы приблизиться к подходу нашего человеческого мозга к языку. Такой подход глубокого обучения позволяет компьютерам гораздо более адаптивно подходить 
+к обработке человеческого языка. Общие NLM включают LSTM и модели трансформаторов.
+
+/
+
+import nltk, re
+from nltk.tokenize import word_tokenize
+# importing ngrams module from nltk
+from nltk.util import ngrams
+from collections import Counter
+from looking_glass import looking_glass_full_text #<----------------- text
+
+cleaned = re.sub('\W+', ' ', looking_glass_full_text).lower()
+tokenized = word_tokenize(cleaned)
+
+# Change the n value to 2:
+looking_glass_bigrams = ngrams(tokenized, 2)
+looking_glass_bigrams_frequency = Counter(looking_glass_bigrams)
+
+# Change the n value to 3:
+looking_glass_trigrams = ngrams(tokenized, 3)
+looking_glass_trigrams_frequency = Counter(looking_glass_trigrams)
+
+# Change the n value to a number greater than 3:
+looking_glass_ngrams = ngrams(tokenized, 5)
+looking_glass_ngrams_frequency = Counter(looking_glass_ngrams)
+
+print("Looking Glass Bigrams:")
+print(looking_glass_bigrams_frequency.most_common(10))
+
+print("\nLooking Glass Trigrams:")
+print(looking_glass_trigrams_frequency.most_common(10))
+
+print("\nLooking Glass n-grams:")
+print(looking_glass_ngrams_frequency.most_common(10))
+
+// topic-models:
+
+Тематическое моделирование - это область НЛП, посвященная раскрытию скрытых или скрытых тем в пределах языковой совокупности. 
+
+Распространенным методом является снижение приоритета наиболее употребляемых слов и определение приоритета менее часто используемых терминов 
+в качестве тем в процессе, известном как частота терминов-обратная частота документа (tf-idf) . Чего-чего?! Поначалу это может показаться нелогичным. 
+Почему вы хотите уделять больше внимания менее употребляемым словам? Что ж, когда вы работаете с большим количеством текста, это имеет некоторый смысл, 
+если вы не хотите, чтобы ваши темы были заполнены такими словами, как «то» и «есть». Библиотеки Python gensimи sklearnмодули для обработки tf-idf.
+
+Независимо от того, используете ли вы свой простой набор слов (который даст вам частоту терминов) или пропустите его через tf-idf, следующим шагом в 
+вашем путешествии по тематическому моделированию часто будет скрытое распределение Дирихле (LDA) . LDA - это статистическая модель, которая берет 
+ваши документы и определяет, какие слова продолжают появляться вместе в одних и тех же контекстах (например, документы). Мы воспользуемся sklearnэтим для себя.
+
+Если у вас есть интерес к визуализации ваших недавно созданных тем, word2vec - отличный метод, который вам пригодится. word2vec может отображать 
+результаты вашей тематической модели пространственно в виде векторов, чтобы слова, употребляемые одинаково, располагались ближе друг к другу.
+
+/
+
+import nltk, re
+from sherlock_holmes import bohemia_ch1, bohemia_ch2, bohemia_ch3, boscombe_ch1, boscombe_ch2, boscombe_ch3
+from preprocessing import preprocess_text
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.decomposition import LatentDirichletAllocation
+
+# preparing the text
+corpus = [bohemia_ch1, bohemia_ch2, bohemia_ch3, boscombe_ch1, boscombe_ch2, boscombe_ch3]
+preprocessed_corpus = [preprocess_text(chapter) for chapter in corpus]
+
+# Update stop_list:
+stop_list = ["say", "see", "holmes", "shall", "say", 
+"man", "upon", "know", "quite", "one"]
+# filtering topics for stop words
+def filter_out_stop_words(corpus):
+  no_stops_corpus = []
+  for chapter in corpus:
+    no_stops_chapter = " ".join([word for word in chapter.split(" ") if word not in stop_list])
+    no_stops_corpus.append(no_stops_chapter)
+  return no_stops_corpus
+filtered_for_stops = filter_out_stop_words(preprocessed_corpus)
+
+# creating the bag of words model
+bag_of_words_creator = CountVectorizer()
+bag_of_words = bag_of_words_creator.fit_transform(filtered_for_stops)
+
+# creating the tf-idf model
+tfidf_creator = TfidfVectorizer(min_df = 0.2)
+tfidf = tfidf_creator.fit_transform(preprocessed_corpus)
+
+# creating the bag of words LDA model
+lda_bag_of_words_creator = LatentDirichletAllocation(learning_method='online', n_components=10)
+lda_bag_of_words = lda_bag_of_words_creator.fit_transform(bag_of_words)
+
+# creating the tf-idf LDA model
+lda_tfidf_creator = LatentDirichletAllocation(learning_method='online', n_components=10)
+lda_tfidf = lda_tfidf_creator.fit_transform(tfidf)
+
+print("~~~ Topics found by bag of words LDA ~~~")
+for topic_id, topic in enumerate(lda_bag_of_words_creator.components_):
+  message = "Topic #{}: ".format(topic_id + 1)
+  message += " ".join([bag_of_words_creator.get_feature_names()[i] for i in topic.argsort()[:-5 :-1]])
+  print(message)
+
+print("\n\n~~~ Topics found by tf-idf LDA ~~~")
+for topic_id, topic in enumerate(lda_tfidf_creator.components_):
+  message = "Topic #{}: ".format(topic_id + 1)
+  message += " ".join([tfidf_creator.get_feature_names()[i] for i in topic.argsort()[:-5 :-1]])
+  print(message)
+  
+
+//  text-similarity:
+
+У большинства из нас есть хорошая история автокоррекции. Посланник нашего телефона незаметно меняет одну букву на другую, когда мы печатаем, 
+и внезапно значение нашего сообщения изменилось (к нашему ужасу или удовольствию). Однако устранение сходства текста, включая исправление орфографии, 
+является серьезной проблемой при обработке естественного языка.
+
+Устранение сходства слов и орфографических ошибок при проверке орфографии или автокоррекции часто требует учета расстояния Левенштейна или минимального 
+расстояния редактирования между двумя словами. Расстояние вычисляется через минимальное количество вставок, удалений и замен, которые должны произойти, 
+чтобы одно слово стало другим.
+
+Фонетическое сходство также является серьезной проблемой при распознавании речи. Более продвинутая технология автозамены и исправления орфографии дополнительно 
+учитывает расстояние между клавишами на клавиатуре и фонетическое сходство.
+
+Также полезно выяснить, совпадают ли тексты, чтобы защититься от плагиата, который мы можем идентифицировать по лексическому сходству 
+(степени, в которой тексты используют один и тот же словарь и фразы). Между тем, семантическое сходство (степень, в которой документы содержат схожее 
+значение или темы) полезно, когда вы хотите найти (или порекомендовать) статью или книгу, аналогичную той, которую вы недавно закончили.
+
+/
+
+import nltk
+# NLTK has a built-in function
+# to check Levenshtein distance:
+from nltk.metrics import edit_distance
+
+def print_levenshtein(string1, string2):
+  print("The Levenshtein distance from '{0}' to '{1}' is {2}!".format(string1, string2, edit_distance(string1, string2)))
+
+# Check the distance between
+# any two words here!
+print_levenshtein("fart", "target")
+
+# Assign passing strings here:
+three_away_from_code = "crete"
+
+two_away_from_chunk = "chunme"
+
+print_levenshtein("code", three_away_from_code)
+print_levenshtein("chunk", two_away_from_chunk)
+
+// Language Prediction & Text Generation:
+
+Прогнозирование языка - это приложение НЛП, связанное с предсказанием текста с учетом предшествующего текста. 
+Автозаполнение, автозаполнение и предлагаемые ответы - распространенные формы предсказания языка.
+
+Ваш первый шаг к предсказанию языка - это выбор языковой модели. Один только набор слов, как правило, не является хорошей моделью для предсказания языка; 
+независимо от того, каким было предыдущее слово, вы просто получите одно из наиболее часто используемых слов из своего учебного корпуса.
+
+Если вы пойдете по маршруту n -грамм, вы, скорее всего, будете полагаться на цепи Маркова, чтобы предсказать статистическую вероятность каждого 
+последующего слова (или символа) на основе корпуса обучения. Цепи Маркова не имеют памяти и делают статистические прогнозы, полностью основанные на 
+текущей n -грамме.
+
+Более продвинутый подход, использующий модель нейронного языка, - это модель долгосрочной краткосрочной памяти (LSTM) . LSTM использует глубокое обучение 
+с сетью искусственных «ячеек», которые управляют памятью, что делает их более подходящими для предсказания текста, чем традиционные нейронные сети.
+
+/ Добавьте три рассказа любимого автора или слова к трем песням любимого исполнителя в файлы document1.py , document2.py и document3.py . Затем запустите script.py, чтобы увидеть короткий пример предсказания текста.
+
+import nltk, re, random
+from nltk.tokenize import word_tokenize
+from collections import defaultdict, deque
+from document1 import training_doc1
+from document2 import training_doc2
+from document3 import training_doc3
+
+class MarkovChain:
+  def __init__(self):
+    self.lookup_dict = defaultdict(list)
+    self._seeded = False
+    self.__seed_me()
+
+  def __seed_me(self, rand_seed=None):
+    if self._seeded is not True:
+      try:
+        if rand_seed is not None:
+          random.seed(rand_seed)
+        else:
+          random.seed()
+        self._seeded = True
+      except NotImplementedError:
+        self._seeded = False
+    
+  def add_document(self, str):
+    preprocessed_list = self._preprocess(str)
+    pairs = self.__generate_tuple_keys(preprocessed_list)
+    for pair in pairs:
+      self.lookup_dict[pair[0]].append(pair[1])
+  
+  def _preprocess(self, str):
+    cleaned = re.sub(r'\W+', ' ', str).lower()
+    tokenized = word_tokenize(cleaned)
+    return tokenized
+
+  def __generate_tuple_keys(self, data):
+    if len(data) < 1:
+      return
+
+    for i in range(len(data) - 1):
+      yield [ data[i], data[i + 1] ]
+      
+  def generate_text(self, max_length=50):
+    context = deque()
+    output = []
+    if len(self.lookup_dict) > 0:
+      self.__seed_me(rand_seed=len(self.lookup_dict))
+      chain_head = [list(self.lookup_dict)[0]]
+      context.extend(chain_head)
+      
+      while len(output) < (max_length - 1):
+        next_choices = self.lookup_dict[context[-1]]
+        if len(next_choices) > 0:
+          next_word = random.choice(next_choices)
+          context.append(next_word)
+          output.append(context.popleft())
+        else:
+          break
+      output.extend(list(context))
+    return " ".join(output)
+
+my_markov = MarkovChain()
+my_markov.add_document(training_doc1)
+my_markov.add_document(training_doc2)
+my_markov.add_document(training_doc3)
+generated_text = my_markov.generate_text()
+print(generated_text)
+
+// advanced-nlp-topics:
+
+Продвинутые темы НЛП
+
+1) Наивные байесовские классификаторы - это контролируемые алгоритмы машинного обучения, которые используют вероятностную теорему для прогнозирования 
+и классификации. Они широко используются для анализа настроений (определения того, выражает ли данный языковой блок отрицательные или положительные чувства) 
+и фильтрации спама.
+2) Мы добились огромных успехов в машинном переводе , но даже самому продвинутому программному обеспечению для перевода, использующему нейронные сети и LSTM, 
+еще далеко до точного перевода между языками.
+3) Некоторые из наиболее изменяющих жизнь приложений НЛП сосредоточены на улучшении языковой доступности для людей с ограниченными возможностями. 
+Функциональность преобразования текста в речь и распознавание речи быстро улучшились благодаря нейронным языковым моделям, что сделало цифровые 
+пространства гораздо более доступными.
+4) НЛП также можно использовать для выявления предвзятости в письме и речи. Почувствуйте, как политический кандидат, книга или источник новостей предвзяты, 
+но не можете понять, как именно? Обработка естественного языка может помочь вам определить язык, о котором идет речь .
+
+/
+
+from reviews import counter, training_counts
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+
+# Add your review:
+review = ""
+review_counts = counter.transform([review])
+
+classifier = MultinomialNB()
+training_labels = [0] * 1000 + [1] * 1000
+
+classifier.fit(training_counts, training_labels)
+  
+neg = (classifier.predict_proba(review_counts)[0][0] * 100).round()
+pos = (classifier.predict_proba(review_counts)[0][1] * 100).round()
+
+if pos > 50:
+  print("Thank you for your positive review!")
+elif neg > 50:
+  print("We're sorry this hasn't been the best possible lesson for you! We're always looking to improve.")
+else:
+  print("Naive Bayes cannot determine if this is negative or positive. Thank you or we're sorry?")
+
+  
+print("\nAccording to our trained Naive Bayes classifier, the probability that your review was negative was {0}% and the probability it was positive was {1}%.".format(neg, pos))
+
+// nlp-challenges-and-considerations:
+
+Проблемы и соображения
+
+1) Различные задачи НЛП могут быть более или менее сложными на разных языках. Поскольку так много инструментов НЛП создано англоговорящими людьми и для них, 
+эти инструменты могут отставать в обработке других языков. Инструменты также могут быть запрограммированы с учетом культурных и лингвистических предубеждений, 
+характерных для англоговорящих людей.
+2) Что, если бы ваш Amazon Alexa мог понимать только богатых мужчин из прибрежных районов США? Сам по себе английский язык не является однородным телом. 
+Английский язык различается в зависимости от человека, диалекта и многих социолингвистических факторов. Когда мы создаем и обучаем инструменты НЛП, 
+создаем ли мы их только для одного типа англоговорящих?
+3) У вас могут быть самые лучшие намерения и все же непреднамеренно запрограммировать фанатичный инструмент. Хотя НЛП может ограничивать предвзятость, 
+оно также может распространять предвзятость. Как разработчику НЛП важно учитывать предвзятость как в коде, так и в корпусе обучения. 
+Машина усвоит те же предубеждения, которым вы ее учите, намеренно или ненамеренно.
+4) Когда вы станете тем, кто создает инструменты с обработкой естественного языка, жизненно важно учитывать конфиденциальность ваших пользователей. 
+Существует множество мощных инструментов НЛП, которые напрямую связаны с проблемами конфиденциальности. Кто собирает ваши данные? 
+Сколько данных собирается и что эти компании планируют делать с вашими данными?
+
+/
+
+from reviews import counter, training_counts
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+
+# Add your review:
+review = "niger is the country"
+review_counts = counter.transform([review])
+
+classifier = MultinomialNB()
+training_labels = [0] * 1000 + [1] * 1000
+
+classifier.fit(training_counts, training_labels)
+
+neg = (classifier.predict_proba(review_counts)[0][0] * 100).round()
+pos = (classifier.predict_proba(review_counts)[0][1] * 100).round()
+
+if pos > 50:
+  print("Naive Bayes classifies this as positive.")
+elif neg > 50:
+  print("Naive Bayes classifies this as negative.")
+else:
+  print("Naive Bayes cannot determine if this is negative or positive.")
+  
+
+print("\nAccording to our trained Naive Bayes classifier, the probability that your review was negative was {0}% and the probability it was positive was {1}%.".format(neg, pos))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
